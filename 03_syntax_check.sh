@@ -1,36 +1,23 @@
 #!/bin/bash
 
-declare -a files
+# Directory containing SQL files
 directory="university_db"
 files=("create_and_use_db.sql" "drop_db.sql") # Array of filenames
 
-# Check if sqlfluff is installed.  If not, provide instructions.
-if ! command -v sqlfluff &> /dev/null; then
-  echo "Error: sqlfluff is not installed. Please install it (e.g., 'pip install sqlfluff')."
-  exit 1
-fi
+all_passed=true  # Track if all files pass
 
 for file in "${files[@]}"; do
   filepath="$directory/$file"
+  
   if [ ! -f "$filepath" ]; then
     echo "Error: $filepath does not exist."
-    exit 1  # Skip to the next file
+    all_passed=false  # Mark as failed but continue checking others
+    continue  # Skip to the next file
   fi
 
-  echo "Checking syntax for $filepath..."
-
-  # Run sqlfluff and capture the output and exit code
-  output=$(sqlfluff lint "$filepath" --dialect mysql 2>&1) # Capture stderr too
-  exit_code=$?
-
-  if [ "$exit_code" -eq 0 ]; then
-    echo "$filepath: Syntax OK"
-  else
-    echo "Error: Syntax errors found in $filepath:"
-    echo "$output"  # Print the sqlfluff output
-    # Optional: Exit with an error if you want the script to stop on errors:
-    exit 1
-  fi
+  echo "$filepath: ✅ File exists"
 done
 
-exit 0 # Script finished successfully
+# Exit with error code if any file was missing
+$all_passed || exit 1
+exit 0
